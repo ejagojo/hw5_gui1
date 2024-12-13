@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scrabble Game</title>
+  <link rel="stylesheet" href="./css/styles.css">
+</head>
+<body>
+  <div class="game-container">
+    <div class="board" id="scrabble-board">
+      <!-- The board cells will be dynamically generated in JS -->
+    </div>
+    <div class="rack" id="tile-rack">
+      <!-- Tiles will be dynamically populated here -->
+    </div>
+    <div class="controls">
+      <button id="validate-word">Validate Word</button>
+      <button id="new-game">New Game</button>
+    </div>
+    <div class="score">
+      <h3>Score: <span id="score">0</span></h3>
+    </div>
+  </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+  <script src="./js/Scrabble_Pieces_AssociativeArray_Jesse.js"></script>
+  <script src="./js/script.js"></script>
+</body>
+</html>
