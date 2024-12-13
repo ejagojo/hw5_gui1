@@ -49,7 +49,7 @@ body {
 }
 
 .cell.double-word {
-  background-color: #e74c3c;
+  background-color: #e79b92;
   color: #fff;
 }
 
@@ -69,7 +69,7 @@ body {
 }
 
 .cell.center {
-  background-color: #f1c40f;
+  background-color: #e79b92;
   color: #2d3436;
   font-weight: bold;
 }
@@ -95,7 +95,7 @@ body {
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
-  height: 60px; /* Adjust based on your tile holder size */
+  height: 85px; /* Adjust based on your tile holder size */
   width: 100%;
   padding: 10px;
 }

@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Define all premium square types and their locations
   const premiumSquares = [
     // Center Square
-    { row: 7, col: 7, type: "center", label: "Double Word Score" },
+    { row: 7, col: 7, type: "center", label: "⭐ Double Word Score" },
     // Triple Word Squares
     { row: 0, col: 0, type: "triple-word", label: "Triple Word Score" }, { row: 0, col: 14, type: "triple-word", label: "Triple Word Score" },
     { row: 14, col: 0, type: "triple-word", label: "Triple Word Score" }, { row: 14, col: 14, type: "triple-word", label: "Triple Word Score" },
@@ -18,11 +18,19 @@ document.addEventListener("DOMContentLoaded", () => {
     { row: 3, col: 3, type: "double-word", label: "Double Word Score" }, { row: 4, col: 4, type: "double-word", label: "Double Word Score" },
     { row: 10, col: 10, type: "double-word", label: "Double Word Score" }, { row: 11, col: 11, type: "double-word", label: "Double Word Score" },
     { row: 12, col: 12, type: "double-word", label: "Double Word Score" }, { row: 13, col: 13, type: "double-word", label: "Double Word Score" },
+    { row: 13, col: 1, type: "double-word", label: "Double Word Score" }, { row: 1, col: 13, type: "double-word", label: "Double Word Score" },
+    { row: 12, col: 2, type: "double-word", label: "Double Word Score" }, { row: 2, col: 12, type: "double-word", label: "Double Word Score" },
+    { row: 11, col: 3, type: "double-word", label: "Double Word Score" }, { row: 3, col: 11, type: "double-word", label: "Double Word Score" },
+    { row: 10, col: 4, type: "double-word", label: "Double Word Score" }, { row: 4, col: 10, type: "double-word", label: "Double Word Score" },
     // Triple Letter Squares
     { row: 1, col: 5, type: "triple-letter", label: "Triple Letter Score" }, { row: 1, col: 9, type: "triple-letter", label: "Triple Letter Score" },
     { row: 5, col: 1, type: "triple-letter", label: "Triple Letter Score" }, { row: 5, col: 13, type: "triple-letter", label: "Triple Letter Score" },
     { row: 9, col: 1, type: "triple-letter", label: "Triple Letter Score" }, { row: 9, col: 13, type: "triple-letter", label: "Triple Letter Score" },
     { row: 13, col: 5, type: "triple-letter", label: "Triple Letter Score" }, { row: 13, col: 9, type: "triple-letter", label: "Triple Letter Score" },
+    { row: 9, col: 5, type: "triple-letter", label: "Triple Letter Score" }, { row: 13, col: 9, type: "triple-letter", label: "Triple Letter Score" },
+    { row: 5, col: 5, type: "triple-letter", label: "Triple Letter Score" }, { row: 13, col: 9, type: "triple-letter", label: "Triple Letter Score" },
+    { row: 5, col: 9, type: "triple-letter", label: "Triple Letter Score" }, { row: 13, col: 9, type: "triple-letter", label: "Triple Letter Score" },
+    { row: 9, col: 9, type: "triple-letter", label: "Triple Letter Score" }, { row: 13, col: 9, type: "triple-letter", label: "Triple Letter Score" },
     // Double Letter Squares
     { row: 0, col: 3, type: "double-letter", label: "Double Letter Score" }, { row: 0, col: 11, type: "double-letter", label: "Double Letter Score" },
     { row: 2, col: 6, type: "double-letter", label: "Double Letter Score" }, { row: 2, col: 8, type: "double-letter", label: "Double Letter Score" },
@@ -34,7 +42,8 @@ document.addEventListener("DOMContentLoaded", () => {
     { row: 8, col: 6, type: "double-letter", label: "Double Letter Score" }, { row: 8, col: 8, type: "double-letter", label: "Double Letter Score" },
     { row: 8, col: 12, type: "double-letter", label: "Double Letter Score" }, { row: 11, col: 0, type: "double-letter", label: "Double Letter Score" },
     { row: 11, col: 7, type: "double-letter", label: "Double Letter Score" }, { row: 11, col: 14, type: "double-letter", label: "Double Letter Score" },
-    { row: 14, col: 3, type: "double-letter", label: "Double Letter Score" }, { row: 14, col: 11, type: "double-letter", label: "Double Letter Score" }
+    { row: 14, col: 3, type: "double-letter", label: "Double Letter Score" }, { row: 14, col: 11, type: "double-letter", label: "Double Letter Score" },
+    { row: 12, col: 6, type: "double-letter", label: "Double Letter Score" },{ row: 12, col: 8, type: "double-letter", label: "Double Letter Score" },
   ];
 
   function generateBoard() {
