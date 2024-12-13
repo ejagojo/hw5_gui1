@@ -7,23 +7,30 @@
     <link rel="stylesheet" href="./css/styles.css">
   </head>
   <body>
-    <div class="game-container">
-      <div class="board" id="scrabble-board">
-        <!-- The board cells will be dynamically generated in JS -->
-      </div>
-      <div class="rack" id="tile-rack">
-        <!-- Tiles will be dynamically populated here -->
-      </div>
-      <div class="controls">
-        <button id="validate-word">Validate Word</button>
-        <button id="new-game">New Game</button>
-      </div>
-      <div class="score">
-        <h3>Score: <span id="score">0</span></h3>
-      </div>
+    <div class="main-container">
+        <div id="letter-counter" class="letter-counter">
+            <!-- Letter counter will be dynamically updated -->
+        </div>
+
+
+        <div class="game-container">
+        <div class="board" id="scrabble-board">
+            <!-- The board cells will be dynamically generated in JS -->
+        </div>
+        <div class="rack" id="tile-rack">
+            <!-- Tiles will be dynamically populated here -->
+        </div>
+        <div class="controls">
+            <button id="validate-word">Validate Word</button>
+            <button id="new-game">New Game</button>
+        </div>
+        <div class="score">
+            <h3>Score: <span id="score">0</span></h3>
+        </div>
+        </div>
     </div>
+  </body>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="./js/Scrabble_Pieces_AssociativeArray_Jesse.js"></script>
     <script src="./js/script.js"></script>
-  </body>
 </html>
