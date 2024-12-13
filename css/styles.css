@@ -43,6 +43,13 @@ body {
   transition: transform 0.2s ease-in-out;
 }
 
+.board .cell img {
+  width: 100%; /* Ensure the tile fits the cell dimensions */
+  height: 100%;
+  object-fit: cover; /* Maintain aspect ratio */
+}
+
+
 .board .cell:hover {
   transform: scale(1.1);
   border-color: #3498db;

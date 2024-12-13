@@ -3,7 +3,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const rack = document.getElementById("tile-rack");
   const scoreElement = document.getElementById("score");
   let currentScore = 0;
-
   // Define all premium square types and their locations
   const premiumSquares = [
     // Center Square
@@ -46,14 +45,16 @@ document.addEventListener("DOMContentLoaded", () => {
     { row: 12, col: 6, type: "double-letter", label: "Double Letter Score" },{ row: 12, col: 8, type: "double-letter", label: "Double Letter Score" },
   ];
 
-  function generateBoard() {
-    board.innerHTML = ""; // Clear board
 
+  // Generate the Scrabble board
+  function generateBoard() {
+    board.innerHTML = ""; // Clear the board
     for (let row = 0; row < 15; row++) {
       for (let col = 0; col < 15; col++) {
         const cell = document.createElement("div");
         cell.classList.add("cell");
-        const premium = premiumSquares.find(sq => sq.row === row && sq.col === col);
+
+        const premium = premiumSquares.find((sq) => sq.row === row && sq.col === col);
         if (premium) {
           cell.classList.add(premium.type);
           const label = document.createElement("span");
@@ -61,32 +62,43 @@ document.addEventListener("DOMContentLoaded", () => {
           label.classList.add("cell-label");
           cell.appendChild(label);
         }
+
         cell.setAttribute("data-row", row);
         cell.setAttribute("data-col", col);
-        cell.setAttribute("data-locked", "false"); // Lock state
-        cell.addEventListener("drop", handleDrop);
+        cell.setAttribute("data-locked", "false");
         cell.addEventListener("dragover", allowDrop);
+        cell.addEventListener("drop", handleDrop);
+
         board.appendChild(cell);
       }
     }
   }
 
+  // Allow drop on cells
   function allowDrop(e) {
     e.preventDefault();
+    e.dataTransfer.dropEffect = "move"; // Visual feedback for drop
   }
 
+  // Handle drop of tiles onto the board
   function handleDrop(e) {
     e.preventDefault();
     const letter = e.dataTransfer.getData("text");
     const tile = document.querySelector(`[data-letter="${letter}"]`);
+
     if (tile && e.target.getAttribute("data-locked") === "false") {
       e.target.appendChild(tile);
       e.target.setAttribute("data-locked", "true");
+
+      // Adjust tile size to fit within the cell
+      tile.style.width = "100%";
+      tile.style.height = "100%";
     }
   }
 
+  // Generate the rack tiles
   function generateTiles() {
-    rack.innerHTML = ""; // Clear rack
+    rack.innerHTML = ""; // Clear the rack
     for (let i = 0; i < 7; i++) {
       const letter = getRandomLetter();
       const tile = document.createElement("img");
@@ -94,19 +106,20 @@ document.addEventListener("DOMContentLoaded", () => {
       tile.classList.add("tile");
       tile.setAttribute("data-letter", letter);
       tile.setAttribute("draggable", "true");
+
       tile.addEventListener("dragstart", (e) => {
         e.dataTransfer.setData("text", letter);
+        e.dataTransfer.effectAllowed = "move";
       });
+
       rack.appendChild(tile);
     }
   }
 
+  // Randomly select a letter based on Scrabble distribution
   function getRandomLetter() {
     const letters = Object.keys(ScrabbleTiles);
-    const total = letters.reduce(
-      (sum, key) => sum + ScrabbleTiles[key]["number-remaining"],
-      0
-    );
+    const total = letters.reduce((sum, key) => sum + ScrabbleTiles[key]["number-remaining"], 0);
 
     let randomIndex = Math.floor(Math.random() * total);
     for (const letter of letters) {
@@ -118,6 +131,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // Initialize the game
   document.getElementById("new-game").addEventListener("click", () => {
     currentScore = 0;
     scoreElement.textContent = currentScore;
@@ -125,6 +139,7 @@ document.addEventListener("DOMContentLoaded", () => {
     generateBoard();
   });
 
+  // Generate initial board and rack
   generateBoard();
   generateTiles();
 });
