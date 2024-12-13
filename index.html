@@ -14,6 +14,14 @@
 
 
         <div class="game-container">
+        <!-- Popup Modal -->
+        <div id="modal" class="modal hidden">
+        <div class="modal-content">
+            <p id="modal-message">The first tile must be placed on the center square.</p>
+            <button id="modal-close">OK</button>
+        </div>
+        </div>
+
         <div class="board" id="scrabble-board">
             <!-- The board cells will be dynamically generated in JS -->
         </div>
@@ -23,6 +31,9 @@
         <div class="controls">
             <button id="validate-word">Validate Word</button>
             <button id="new-game">New Game</button>
+            <div id="garbage-bin" class="garbage-bin" draggable="false">
+                <img src="assets/garbageIcon.png" alt="Trash Bin">
+            </div>
         </div>
         <div class="score">
             <h3>Score: <span id="score">0</span></h3>
