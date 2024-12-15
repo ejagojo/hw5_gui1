@@ -154,6 +154,9 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       updateLetterCounter(); // Reflect that a tile has been placed on the board
+
+      const words = getWordsFromBoard();
+      console.log("Words found on the board:", words);
     }
   }
 
@@ -314,6 +317,73 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   // ----- End Garbage Bin Logic -----
 
+  // New function: getWordsFromBoard
+  function getWordsFromBoard() {
+    const size = 15;
+    // Build a 2D array representing the board letters
+    const boardArray = [];
+    for (let r = 0; r < size; r++) {
+      boardArray[r] = [];
+      for (let c = 0; c < size; c++) {
+        const cell = board.querySelector(`.cell[data-row="${r}"][data-col="${c}"]`);
+        const tileImg = cell.querySelector('img.tile');
+        if (tileImg) {
+          const letter = tileImg.getAttribute('data-letter');
+          boardArray[r][c] = letter;
+        } else {
+          boardArray[r][c] = null;
+        }
+      }
+    }
+
+    // Extract horizontal words
+    const horizontalWords = [];
+    for (let r = 0; r < size; r++) {
+      let word = [];
+      for (let c = 0; c < size; c++) {
+        const letter = boardArray[r][c];
+        if (letter) {
+          word.push(letter);
+        } else {
+          if (word.length > 1) {
+            horizontalWords.push(word.join(''));
+          }
+          word = [];
+        }
+      }
+      // Check at row end
+      if (word.length > 1) {
+        horizontalWords.push(word.join(''));
+      }
+    }
+
+    // Extract vertical words
+    const verticalWords = [];
+    for (let c = 0; c < size; c++) {
+      let word = [];
+      for (let r = 0; r < size; r++) {
+        const letter = boardArray[r][c];
+        if (letter) {
+          word.push(letter);
+        } else {
+          if (word.length > 1) {
+            verticalWords.push(word.join(''));
+          }
+          word = [];
+        }
+      }
+      // Check at column end
+      if (word.length > 1) {
+        verticalWords.push(word.join(''));
+      }
+    }
+
+    console.log("Horizontal words found:", horizontalWords);
+    console.log("Vertical words found:", verticalWords);
+
+    return [...horizontalWords, ...verticalWords];
+  }
+  
   // Initial setup
   resetTiles();
   generateBoard();
