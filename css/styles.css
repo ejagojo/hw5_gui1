@@ -29,6 +29,7 @@ body {
   padding: 20px;
   background-color: #34495e;
   border-radius: 10px;
+
 }
 
 .board {
@@ -39,6 +40,7 @@ body {
   background-color: #1abc9c;
   padding: 5px;
   border-radius: 10px;
+  margin-top: 50px;
 }
 
 .board .cell {
@@ -111,14 +113,14 @@ body {
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
-  height: 85px; /* Adjust based on your tile holder size */
+  height: 65px; /* Adjust based on your tile holder size */
   width: 100%;
   padding: 10px;
 }
 
 .rack img {
-  width: 40px;
-  height: 40px;
+  width: 30px;
+  height: 30px;
   margin: 0 5px;
   cursor: grab;
   transition: transform 0.2s ease;
