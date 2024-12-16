@@ -13,9 +13,10 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentScore = 0;
   let isCenterTileUsed = false;
   let uniqueTileId = 0;
-  
-  // NEW: Track previously scored words to avoid re-scoring them
   let previouslyScoredWords = [];
+
+  // Track how many words have been scored for the summary at the end
+  let wordsScoredCount = 0;
 
   refreshTilesButton.addEventListener("click", () => {
     rack.innerHTML = "";
@@ -178,7 +179,13 @@ document.addEventListener("DOMContentLoaded", () => {
     rack.innerHTML = "";
     for (let i = 0; i < 7; i++) {
       const letter = getRandomLetter();
-      if (!letter) continue;
+      if (!letter) {
+        // If no letter available, game over scenario
+        // Summarize how many words were scored and the final score
+        const summary = `Game Over! No more tiles available!\nWords Scored: ${wordsScoredCount}\nTotal Score: ${currentScore}`;
+        showModal(summary);
+        return;
+      }
 
       const tile = document.createElement("img");
       tile.src = (letter === "_")
@@ -204,8 +211,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const total = letters.reduce((sum, key) => sum + ScrabbleTiles[key]["number-remaining"], 0);
 
     if (total === 0) {
-      alert("No more tiles available!");
-      return null;
+      return null; // Indicate no more tiles
     }
 
     let randomIndex = Math.floor(Math.random() * total);
@@ -260,7 +266,8 @@ document.addEventListener("DOMContentLoaded", () => {
     generateBoard();
     generateTiles();
     updateLetterCounter();
-    previouslyScoredWords = []; // reset scored words on new game
+    previouslyScoredWords = [];
+    wordsScoredCount = 0;
   });
 
   garbageBin.addEventListener("dragover", (e) => {
@@ -288,7 +295,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function generateTileInRack() {
     const letter = getRandomLetter();
-    if (!letter) return;
+    if (!letter) {
+      // No tiles left, end game scenario here as well
+      const summary = `Game Over! No more tiles available!\nWords Scored: ${wordsScoredCount}\nTotal Score: ${currentScore}`;
+      showModal(summary);
+      return;
+    }
 
     const tile = document.createElement("img");
     tile.src = (letter === "_")
@@ -389,7 +401,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let totalPlayScore = 0;
 
-    // Only score words not previously scored
     const newWords = words.filter((w) => !previouslyScoredWords.includes(w));
 
     for (const word of newWords) {
@@ -438,11 +449,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
       wordScore *= wordMultiplier;
       totalPlayScore += wordScore;
+      wordsScoredCount++;
       showModal(
         `Your word "${word}" scored ${wordScore} points for this play due to having ${appliedBonuses.join(", ")}! Your total score: ${currentScore + totalPlayScore}`
       );
 
-      // Mark this word as scored
       previouslyScoredWords.push(word);
     }
 
