@@ -277,7 +277,6 @@ button:hover {
   width: 50px;
   height: 50px;
   margin-left: 10px;
-  background-color: #2d3436;
   border: 2px solid transparent;
   border-radius: 5px;
   transition: border-color 0.3s ease;
@@ -290,4 +289,25 @@ button:hover {
 
 .garbage-bin.drag-over {
   border-color: #27ae60; /* Green highlight */
+}
+
+.refresh-tiles {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 50px;
+  height: 50px;
+  margin-left: 10px;
+  border: 2px solid transparent;
+  border-radius: 5px;
+  transition: border-color 0.3s ease;
+}
+
+.refresh-tiles img {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.refresh-tiles:hover {
+  border-color: #16a085;
 }

@@ -8,10 +8,28 @@ document.addEventListener("DOMContentLoaded", () => {
   const modalMessage = document.getElementById("modal-message");
   const modalClose = document.getElementById("modal-close");
   const validateWordButton = document.getElementById("validate-word");
+  const refreshTilesButton = document.getElementById("refresh-tiles");
 
   let currentScore = 0;
   let isCenterTileUsed = false;
   let uniqueTileId = 0;
+  
+  // NEW: Track previously scored words to avoid re-scoring them
+  let previouslyScoredWords = [];
+
+  refreshTilesButton.addEventListener("click", () => {
+    rack.innerHTML = "";
+    generateTiles();
+    updateLetterCounter();
+  });
+
+  function resetTiles() {
+    for (const letter in ScrabbleTiles) {
+      if (ScrabbleTiles.hasOwnProperty(letter)) {
+        ScrabbleTiles[letter]["number-remaining"] = ScrabbleTiles[letter]["original-distribution"];
+      }
+    }
+  }
 
   const premiumSquares = [
     { row: 7, col: 7, type: "center", label: "⭐ Double Word Score" },
@@ -76,14 +94,6 @@ document.addEventListener("DOMContentLoaded", () => {
     { row: 12, col: 6, type: "double-letter", label: "Double Letter Score" },
     { row: 12, col: 8, type: "double-letter", label: "Double Letter Score" },
   ];
-
-  function resetTiles() {
-    for (const letter in ScrabbleTiles) {
-      if (ScrabbleTiles.hasOwnProperty(letter)) {
-        ScrabbleTiles[letter]["number-remaining"] = ScrabbleTiles[letter]["original-distribution"];
-      }
-    }
-  }
 
   function generateBoard() {
     board.innerHTML = "";
@@ -250,6 +260,7 @@ document.addEventListener("DOMContentLoaded", () => {
     generateBoard();
     generateTiles();
     updateLetterCounter();
+    previouslyScoredWords = []; // reset scored words on new game
   });
 
   garbageBin.addEventListener("dragover", (e) => {
@@ -271,7 +282,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!tile) return;
 
     tile.remove();
-
     generateTileInRack();
     updateLetterCounter();
   });
@@ -378,9 +388,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     let totalPlayScore = 0;
-    const size = 15;
 
-    for (const word of words) {
+    // Only score words not previously scored
+    const newWords = words.filter((w) => !previouslyScoredWords.includes(w));
+
+    for (const word of newWords) {
       const valid = await isWordValid(word);
       if (!valid) {
         showModal(`The word "${word}" is not a valid English word.`);
@@ -391,6 +403,7 @@ document.addEventListener("DOMContentLoaded", () => {
       let wordMultiplier = 1;
       let appliedBonuses = [];
 
+      const size = 15;
       for (let r = 0; r < size; r++) {
         for (let c = 0; c < size; c++) {
           const cell = board.querySelector(`.cell[data-row="${r}"][data-col="${c}"]`);
@@ -424,21 +437,17 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       wordScore *= wordMultiplier;
-      // Instead of using currentScore + totalPlayScore, we just show currentScore + wordScore for this play.
-      showModal(
-        `Your word "${word}" scored ${wordScore} points for this play due to having ${appliedBonuses.join(", ")}! Your total score: ${currentScore + wordScore}`
-      );
-      // Accumulate the word score into totalPlayScore
       totalPlayScore += wordScore;
+      showModal(
+        `Your word "${word}" scored ${wordScore} points for this play due to having ${appliedBonuses.join(", ")}! Your total score: ${currentScore + totalPlayScore}`
+      );
+
+      // Mark this word as scored
+      previouslyScoredWords.push(word);
     }
 
-    // After processing all words, now update currentScore once
     currentScore += totalPlayScore;
     scoreElement.textContent = currentScore;
-
-    if (rack.querySelectorAll('.tile').length === 0) {
-      showModal(`Game Over! You used all your tiles. Your final score: ${currentScore}`);
-    }
   });
 
   resetTiles();
