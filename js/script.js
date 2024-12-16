@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const modal = document.getElementById("modal");
   const modalMessage = document.getElementById("modal-message");
   const modalClose = document.getElementById("modal-close");
-  const validateWordButton = document.getElementById("validate-word"); // Button to validate word
+  const validateWordButton = document.getElementById("validate-word"); // Button to finalize and score the placed word(s)
 
   let currentScore = 0;
   let isCenterTileUsed = false;
@@ -121,8 +121,7 @@ document.addEventListener("DOMContentLoaded", () => {
     e.preventDefault();
   }
 
-  // handleDrop: places tile on board but does NOT validate words now
-  // Word validation only happens when Validate Word button is pressed.
+  // handleDrop: places tile on board but does not calculate score yet.
   function handleDrop(e) {
     e.preventDefault();
     const cellElem = e.target.classList.contains("cell") ? e.target : e.target.closest(".cell");
@@ -369,36 +368,62 @@ document.addEventListener("DOMContentLoaded", () => {
     return [...horizontalWords, ...verticalWords];
   }
 
-  // Validate words only when Validate Word button is pressed
+  // On Validate Word: now we calculate and finalize score based on simplified rules
   validateWordButton.addEventListener("click", () => {
     const words = getWordsFromBoard();
-    // If no words, show a modal stating no words found
+
     if (words.length === 0) {
       showModal("No words found on the board.");
       return;
     }
 
-    words.forEach((word) => {
-      validateWord(word);
-    });
-  });
+    // Calculate score based on letter values and bonuses
+    let wordScore = 0;
+    let wordMultiplier = 1;
 
-  async function validateWord(word) {
-    try {
-      const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
-      if (!response.ok) {
-        // If not found, show a popup that the word is not found
-        showModal(`The word "${word}" is not found in the dictionary.`);
-      } else {
-        const data = await response.json();
-        // If found, show a popup that the word is indeed a valid English word.
-        showModal(`The word "${word}" is a valid English word!`);
+    // Identify all placed tiles from the board to score them
+    // Since simplified: assume all tiles form a single contiguous word
+    // We'll sum up their values, apply letter and word multipliers.
+    const size = 15;
+    for (let r = 0; r < size; r++) {
+      for (let c = 0; c < size; c++) {
+        const cell = board.querySelector(`.cell[data-row="${r}"][data-col="${c}"]`);
+        if (!cell) continue;
+        const tileImg = cell.querySelector('img.tile');
+        if (tileImg) {
+          const letter = tileImg.getAttribute('data-letter');
+          let letterValue = ScrabbleTiles[letter].value;
+
+          // Check if cell is a premium cell
+          if (cell.classList.contains('double-letter')) {
+            letterValue *= 2;
+          } else if (cell.classList.contains('triple-letter')) {
+            letterValue *= 3;
+          }
+
+          wordScore += letterValue;
+
+          if (cell.classList.contains('double-word') || cell.classList.contains('center')) {
+            wordMultiplier *= 2;
+          } else if (cell.classList.contains('triple-word')) {
+            wordMultiplier *= 3;
+          }
+        }
       }
-    } catch (error) {
-      console.error("Error validating word:", error);
-      showModal(`Error validating the word "${word}". Please try again.`);
     }
-  }
+
+    wordScore *= wordMultiplier;
+    currentScore += wordScore;
+    scoreElement.textContent = currentScore;
+
+    // Check if rack is empty (no tiles left in rack)
+    if (rack.querySelectorAll('.tile').length === 0) {
+      // If no tiles left, game ends. Show final score message.
+      showModal(`Game Over! You used all your tiles. Your final score: ${currentScore}`);
+    } else {
+      showModal(`You scored ${wordScore} points for this play! Your total score: ${currentScore}`);
+    }
+  });
 
   // Initial setup
   resetTiles();
