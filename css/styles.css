@@ -29,7 +29,7 @@ body {
   padding: 20px;
   background-color: #34495e;
   border-radius: 10px;
-
+  margin: 0px auto;
 }
 
 .board {
@@ -310,4 +310,33 @@ button:hover {
 
 .refresh-tiles:hover {
   border-color: #16a085;
+}
+
+.instructions-container {
+  margin-top: 20px;
+  background-color: #34495e;
+  border-radius: 10px;
+  color: #ecf0f1;
+  padding: 15px;
+  max-width: 600px;
+  font-size: 0.9em;
+  line-height: 1.4;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+.instructions-container h4 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-size: 1.1em;
+  text-align: center;
+}
+.instructions-container ul {
+  list-style: none;
+  padding: 0;
+}
+.instructions-container li {
+  margin-bottom: 5px;
+}
+.instructions-container li span {
+  font-weight: bold;
+  color: #1abc9c;
 }

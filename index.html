@@ -1,53 +1,66 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Scrabble Game</title>
     <link rel="stylesheet" href="./css/styles.css">
+    <style>
+      /* Additional styling for the instructions container, aligned with overall theme */
+
+    </style>
   </head>
   <body>
     <div class="main-container">
-        <div id="letter-counter" class="letter-counter">
-            <!-- Letter counter will be dynamically updated -->
-        </div>
+      <div id="letter-counter" class="letter-counter">
+        <!-- Letter counter will be dynamically updated -->
+      </div>
 
-
-        <div class="game-container">
+      <div class="game-container">
         <!-- Popup Modal -->
         <div id="modal" class="modal hidden">
-        <div class="modal-content">
+          <div class="modal-content">
             <p id="modal-message">The first tile must be placed on the center square.</p>
             <button id="modal-close">OK</button>
-        </div>
+          </div>
         </div>
 
         <div class="board" id="scrabble-board">
-            <!-- The board cells will be dynamically generated in JS -->
+          <!-- The board cells will be dynamically generated in JS -->
         </div>
         <div class="rack" id="tile-rack">
-            <!-- Tiles will be dynamically populated here -->
+          <!-- Tiles will be dynamically populated here -->
         </div>
         <div class="controls">
-            <button id="validate-word">Validate Word</button>
-            <button id="new-game">New Game</button>
-            <div id="refresh-tiles" class="refresh-tiles" draggable="false">
-                <img src="assets/refresh.png" alt="Trash Bin">
-            </div>
-            <div id="garbage-bin" class="garbage-bin" draggable="false">
-                <img src="assets/garbageIcon.png" alt="Trash Bin">
-            </div>
+          <button id="validate-word">Validate Word</button>
+          <button id="new-game">New Game</button>
+          <div id="refresh-tiles" class="refresh-tiles" draggable="false">
+            <img src="assets/refresh.png" alt="Trash Bin">
+          </div>
+          <div id="garbage-bin" class="garbage-bin" draggable="false">
+            <img src="assets/garbageIcon.png" alt="Trash Bin">
+          </div>
         </div>
         <div class="score">
-            <h3>Score: <span id="score">0</span></h3>
+          <h3>Score: <span id="score">0</span></h3>
         </div>
-        </div>
-        <div id="instructions-container" class="instructions-container">
-            
-        </div>
+      </div>
+
+      <div id="instructions-container" class="instructions-container">
+        <h4>How to Play Scrabble</h4>
+        <p>Place letter tiles on the board to form valid English words. Your first tile must be placed on the center square. Score points based on the letters used and special bonus squares.</p>
+        <ul>
+          <li><span>Validate Word:</span> Checks your placed tiles, confirms if they form valid words, and updates your score.</li>
+          <li><span>New Game:</span> Resets the board, tiles, and your score to start a new match.</li>
+          <li><span>Refresh Tiles:</span> Click this icon to discard your current rack and draw a new set of tiles (if available).</li>
+          <li><span>Garbage Bin:</span> Drag unwanted tiles from your rack into the garbage bin to discard them and draw replacements.</li>
+        </ul>
+        <p>Use letter tiles from your rack, form words on the board, and aim for the highest score possible!</p>
+      </div>
     </div>
-  </body>
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="./js/Scrabble_Pieces_AssociativeArray_Jesse.js"></script>
     <script src="./js/script.js"></script>
+  </body>
 </html>
