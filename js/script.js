@@ -7,9 +7,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const modal = document.getElementById("modal");
   const modalMessage = document.getElementById("modal-message");
   const modalClose = document.getElementById("modal-close");
+  const validateWordButton = document.getElementById("validate-word"); // Button to validate word
 
   let currentScore = 0;
   let isCenterTileUsed = false;
+  let uniqueTileId = 0; // Keep track of unique tile IDs
 
   // Premium squares configuration (unchanged)
   const premiumSquares = [
@@ -76,7 +78,6 @@ document.addEventListener("DOMContentLoaded", () => {
     { row: 12, col: 8, type: "double-letter", label: "Double Letter Score" },
   ];
 
-
   function resetTiles() {
     for (const letter in ScrabbleTiles) {
       if (ScrabbleTiles.hasOwnProperty(letter)) {
@@ -120,21 +121,22 @@ document.addEventListener("DOMContentLoaded", () => {
     e.preventDefault();
   }
 
+  // handleDrop: places tile on board but does NOT validate words now
+  // Word validation only happens when Validate Word button is pressed.
   function handleDrop(e) {
     e.preventDefault();
     const cellElem = e.target.classList.contains("cell") ? e.target : e.target.closest(".cell");
     if (!cellElem) return;
 
-    const letter = e.dataTransfer.getData("text");
-    const tile = document.querySelector(`[data-letter="${letter}"]`);
+    const tileId = e.dataTransfer.getData("text");
+    const tile = document.querySelector(`[data-tile-id="${tileId}"]`);
     if (!tile || !cellElem) return;
 
+    const letter = tile.getAttribute("data-letter");
     const row = parseInt(cellElem.getAttribute("data-row"), 10);
     const col = parseInt(cellElem.getAttribute("data-col"), 10);
-
     const isCenterSquare = (row === 7 && col === 7);
 
-    // Enforce center start rule
     if (!isCenterTileUsed && !isCenterSquare) {
       showModal("The first tile must be placed on the center square.");
       return;
@@ -142,7 +144,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (cellElem.getAttribute("data-locked") === "false") {
       const label = cellElem.querySelector(".cell-label");
-      if (label) label.remove(); // Remove premium label once tile is placed
+      if (label) label.remove();
 
       cellElem.appendChild(tile);
       cellElem.setAttribute("data-locked", "true");
@@ -153,10 +155,7 @@ document.addEventListener("DOMContentLoaded", () => {
         isCenterTileUsed = true;
       }
 
-      updateLetterCounter(); // Reflect that a tile has been placed on the board
-
-      const words = getWordsFromBoard();
-      console.log("Words found on the board:", words);
+      updateLetterCounter();
     }
   }
 
@@ -182,15 +181,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
       tile.classList.add("tile");
       tile.setAttribute("data-letter", letter);
+      tile.setAttribute("data-tile-id", `tile-${uniqueTileId++}`);
       tile.setAttribute("draggable", "true");
 
       tile.addEventListener("dragstart", (e) => {
-        e.dataTransfer.setData("text", letter);
+        e.dataTransfer.setData("text", tile.getAttribute("data-tile-id"));
       });
 
       rack.appendChild(tile);
     }
-    // After generating the initial 7 tiles, update the counter.
     updateLetterCounter();
   }
 
@@ -216,18 +215,12 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function updateLetterCounter() {
-    // Re-render the letter counter to reflect current tile distribution.
-    // "Used" represents how many tiles have been drawn from the bag
-    // since original-distribution. This includes tiles on the board, in the rack,
-    // or discarded in the garbage bin.
     renderLetterCounter();
   }
 
   function renderLetterCounter() {
     const tableRows = Object.entries(ScrabbleTiles)
       .map(([letter, info]) => {
-        // "Used" is calculated as original-distribution minus number-remaining.
-        // This reflects how many of that letter have been taken out of the "bag".
         const used = info["original-distribution"] - info["number-remaining"];
         return `
           <tr>
@@ -253,18 +246,16 @@ document.addEventListener("DOMContentLoaded", () => {
       </table>`;
   }
 
-
   document.getElementById("new-game").addEventListener("click", () => {
     currentScore = 0;
     scoreElement.textContent = currentScore;
     isCenterTileUsed = false;
     resetTiles();
     generateBoard();
-    generateTiles(); // Will update counter after tile generation
+    generateTiles();
     updateLetterCounter();
   });
 
-  // ----- Garbage Bin Logic -----
   garbageBin.addEventListener("dragover", (e) => {
     e.preventDefault();
     garbageBin.classList.add("drag-over");
@@ -278,10 +269,12 @@ document.addEventListener("DOMContentLoaded", () => {
     e.preventDefault();
     garbageBin.classList.remove("drag-over");
 
-    const letter = e.dataTransfer.getData("text");
-    const tile = document.querySelector(`[data-letter="${letter}"]`);
+    const tileId = e.dataTransfer.getData("text");
+    const tile = document.querySelector(`[data-tile-id="${tileId}"]`);
 
     if (!tile) return;
+
+    const letter = tile.getAttribute("data-letter");
 
     // Remove discarded tile
     tile.remove();
@@ -289,7 +282,6 @@ document.addEventListener("DOMContentLoaded", () => {
     // Generate a new tile
     generateTileInRack();
 
-    // Update the letter counter after discarding and regenerating a tile
     updateLetterCounter();
   });
 
@@ -304,23 +296,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
     tile.classList.add("tile");
     tile.setAttribute("data-letter", letter);
+    tile.setAttribute("data-tile-id", `tile-${uniqueTileId++}`);
     tile.setAttribute("draggable", "true");
 
     tile.addEventListener("dragstart", (e) => {
-      e.dataTransfer.setData("text", letter);
+      e.dataTransfer.setData("text", tile.getAttribute("data-tile-id"));
     });
 
     rack.appendChild(tile);
 
-    // Immediately update counter after adding a new tile.
     updateLetterCounter();
   }
-  // ----- End Garbage Bin Logic -----
 
-  // New function: getWordsFromBoard
   function getWordsFromBoard() {
     const size = 15;
-    // Build a 2D array representing the board letters
     const boardArray = [];
     for (let r = 0; r < size; r++) {
       boardArray[r] = [];
@@ -336,7 +325,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
-    // Extract horizontal words
     const horizontalWords = [];
     for (let r = 0; r < size; r++) {
       let word = [];
@@ -351,13 +339,11 @@ document.addEventListener("DOMContentLoaded", () => {
           word = [];
         }
       }
-      // Check at row end
       if (word.length > 1) {
         horizontalWords.push(word.join(''));
       }
     }
 
-    // Extract vertical words
     const verticalWords = [];
     for (let c = 0; c < size; c++) {
       let word = [];
@@ -372,7 +358,6 @@ document.addEventListener("DOMContentLoaded", () => {
           word = [];
         }
       }
-      // Check at column end
       if (word.length > 1) {
         verticalWords.push(word.join(''));
       }
@@ -383,10 +368,41 @@ document.addEventListener("DOMContentLoaded", () => {
 
     return [...horizontalWords, ...verticalWords];
   }
-  
+
+  // Validate words only when Validate Word button is pressed
+  validateWordButton.addEventListener("click", () => {
+    const words = getWordsFromBoard();
+    // If no words, show a modal stating no words found
+    if (words.length === 0) {
+      showModal("No words found on the board.");
+      return;
+    }
+
+    words.forEach((word) => {
+      validateWord(word);
+    });
+  });
+
+  async function validateWord(word) {
+    try {
+      const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
+      if (!response.ok) {
+        // If not found, show a popup that the word is not found
+        showModal(`The word "${word}" is not found in the dictionary.`);
+      } else {
+        const data = await response.json();
+        // If found, show a popup that the word is indeed a valid English word.
+        showModal(`The word "${word}" is a valid English word!`);
+      }
+    } catch (error) {
+      console.error("Error validating word:", error);
+      showModal(`Error validating the word "${word}". Please try again.`);
+    }
+  }
+
   // Initial setup
   resetTiles();
   generateBoard();
-  generateTiles(); // Counter updated here as well
+  generateTiles();
   updateLetterCounter();
 });
