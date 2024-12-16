@@ -1,26 +1,47 @@
-/* General styling remains the same */
+/*
+Name: Eljohn(EJ) Agojo
+Date: 12/16/2024
+File: styles.css
+
+GUI Assignment:
+    This assignment is about creating a web app copy of the infamous game scrabble, by utilizing JQUERy and our knowdledge of
+    html, css and javascript
+
+Eljohn Agojo, UMass Lowell Computer Science, eljohn_agojo@student.uml.edu
+Copyright (c) 2024 by Eljohn. All rights reserved. May be freely copied or 
+excerpted for educational purposes with credit to the author.
+*/
+
+
+/* Overall page styling:
+   We are using flex to center everything both vertically and horizontally,
+   and a dark background to create contrast with the board and tiles. */
 body {
   font-family: Arial, sans-serif;
   margin: 0;
   padding: 0;
   display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  background-color: #2d3436;
-  color: #fff;
+  justify-content: center; /* Centers the content horizontally */
+  align-items: center; /* Centers the content vertically */
+  height: 100vh; /* Takes full viewport height */
+  background-color: #2d3436; /* Dark background for contrast */
+  color: #fff; /* White text for legibility */
 }
 
+/* Main container holds the letter-counter and the game-container side by side.
+   We use responsive techniques so that on smaller screens they stack vertically. */
 .main-container {
-  display: flex; /* Align the letter-counter and game-container side by side */
-  justify-content: center; /* Keep them horizontally centered */
-  align-items: center; /* Vertically align them */
-  gap: 20px; /* Add spacing between the elements */
-  width: 100%; /* Take full width of the page */
-  max-width: 1200px; /* Optional: prevent it from becoming too wide */
-  margin: 0 auto; /* Ensure overall centering */
+  display: flex; /* Positions letter-counter and game-container side by side on large screens */
+  justify-content: center; /* Keeps them centered horizontally */
+  align-items: center; /* Keeps them aligned vertically */
+  gap: 20px; /* Spacing between the two containers */
+  width: 100%; 
+  max-width: 1200px; 
+  margin: 0 auto; /* Centers the main container within the viewport */
 }
 
+/* The game-container holds the board, rack, controls, and score.
+   Using a box-shadow and border-radius to give a polished, card-like appearance. */
 .game-container {
   display: flex;
   flex-direction: column;
@@ -29,9 +50,11 @@ body {
   padding: 20px;
   background-color: #34495e;
   border-radius: 10px;
-  margin: 0px auto;
+  margin: 0px auto; /* Keeps the game-container centered within the main-container */
 }
 
+/* The board is a 15x15 grid of cells, each cell is a square to hold a tile.
+   gap provides small spacing between cells, and the board is given a background and radius. */
 .board {
   display: grid;
   grid-template-columns: repeat(15, 40px);
@@ -40,9 +63,11 @@ body {
   background-color: #1abc9c;
   padding: 5px;
   border-radius: 10px;
-  margin-top: 50px;
+  margin-top: 50px; /* Creates space above the board */
 }
 
+/* Each cell within the board is designed as a drop target for tiles.
+   Hover effects and subtle transitions are added for visual feedback. */
 .board .cell {
   width: 40px;
   height: 40px;
@@ -52,20 +77,24 @@ body {
   justify-content: center;
   align-items: center;
   position: relative;
-  transition: transform 0.2s ease-in-out;
+  transition: transform 0.2s ease-in-out; /* Smooth hover effect */
 }
 
+/* Tiles placed inside cells will scale properly and maintain aspect ratio. */
 .board .cell img {
-  width: 100%; /* Ensure the tile fits the cell dimensions */
+  width: 100%; 
   height: 100%;
-  object-fit: cover; /* Maintain aspect ratio */
+  object-fit: cover;
 }
 
+/* Hover effect to highlight the cell the user is interacting with. */
 .board .cell:hover {
   transform: scale(1.1);
   border-color: #3498db;
 }
 
+/* Different premium cell classes to visually differentiate them:
+   double-word, triple-word, double-letter, triple-letter, and the center cell. */
 .cell.double-word {
   background-color: #e79b92;
   color: #fff;
@@ -86,12 +115,15 @@ body {
   color: #fff;
 }
 
+/* The center cell has a unique background and is where the first tile must be placed. */
 .cell.center {
   background-color: #e79b92;
   color: #2d3436;
   font-weight: bold;
 }
 
+/* Cell-labels are placed on premium cells for players to know which bonus it grants.
+   Using absolute positioning to center the label. */
 .cell-label {
   position: absolute;
   top: 50%;
@@ -104,6 +136,8 @@ body {
   font-weight: bold;
 }
 
+/* The rack container holds the player's current tiles.
+   A background image simulates a wooden tile rack. */
 .rack {
   display: flex;
   justify-content: center;
@@ -113,29 +147,35 @@ body {
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
-  height: 65px; /* Adjust based on your tile holder size */
+  height: 65px; 
   width: 100%;
   padding: 10px;
 }
 
+/* Each tile in the rack is clickable and draggable.
+   They have a small scale-up effect when clicked. */
 .rack img {
   width: 30px;
   height: 30px;
   margin: 0 5px;
   cursor: grab;
-  transition: transform 0.2s ease;
+  transition: transform 0.2s ease; 
 }
 
+/* Active state for when the user is dragging a tile. */
 .rack img:active {
   transform: scale(1.2);
 }
 
+/* The controls section holds buttons and icons for user actions (validate, new game, refresh tiles, garbage).
+   gap provides spacing between controls. */
 .controls {
   margin-top: 20px;
   display: flex;
   gap: 10px;
 }
 
+/* Buttons are styled with a teal background and rounded corners. */
 button {
   background-color: #16a085;
   color: #fff;
@@ -147,33 +187,40 @@ button {
   transition: background-color 0.3s ease;
 }
 
+/* Hover effect on buttons: brightens the teal color. */
 button:hover {
   background-color: #1abc9c;
 }
 
+/* The score is displayed below the controls, showing the player's current points. */
 .score {
   font-size: 20px;
   margin-top: 10px;
 }
 
+/* The letter-counter shows how many of each letter is used and total.
+   It's placed side by side with the game-container at large screens. */
 .letter-counter {
   background-color: #34495e;
   border-radius: 10px;
   color: white;
   padding: 10px;
   text-align: center;
-  width: 150px; /* Adjusted to make it compact */
+  width: 150px; 
   max-width: 200px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   font-size: 0.9em;
 }
 
+/* Header inside the letter-counter to label the table. */
 .letter-counter h3 {
   margin-bottom: 10px;
   color: #ecf0f1;
   font-size: 1em;
 }
 
+/* A small table to display letter usage.
+   Using compact padding and smaller font for clarity. */
 .letter-counter table {
   width: 100%;
   border-collapse: collapse;
@@ -182,18 +229,20 @@ button:hover {
 
 .letter-counter th,
 .letter-counter td {
-  padding: 5px; /* Compact padding */
+  padding: 5px; 
   border: 1px solid #ecf0f1;
   text-align: center;
-  font-size: 0.75em; /* Smaller text */
+  font-size: 0.75em; 
 }
 
+/* Table header inside the letter counter for clarity. */
 .letter-counter th {
   background-color: #2c3e50;
   color: #ecf0f1;
   font-weight: bold;
 }
 
+/* Table rows alternate in greenish background for distinction. */
 .letter-counter td {
   background-color: #1abc9c;
   color: white;
@@ -203,9 +252,10 @@ button:hover {
   font-weight: bold;
 }
 
+/* Responsive design: On small screens, we stack elements vertically. */
 @media (max-width: 600px) {
   .main-container {
-    flex-direction: column; /* Stack elements vertically on smaller screens */
+    flex-direction: column; 
     align-items: center;
   }
 
@@ -221,7 +271,9 @@ button:hover {
     padding: 4px;
   }
 }
-/* Modal styling */
+
+/* Modal styling for in-game alerts or confirmation.
+   The modal darkens the screen and shows a centered message box. */
 .modal {
   position: fixed;
   top: 0;
@@ -236,9 +288,10 @@ button:hover {
 }
 
 .modal.hidden {
-  display: none; /* Hide the modal */
+  display: none; /* Hide the modal when not needed */
 }
 
+/* Modal-content: styled like a dialog box. */
 .modal-content {
   background-color: #34495e;
   padding: 20px;
@@ -255,6 +308,7 @@ button:hover {
   margin-bottom: 20px;
 }
 
+/* Modal button: similar style to other buttons, but placed within the modal. */
 .modal-content button {
   background-color: #16a085;
   color: #fff;
@@ -270,6 +324,9 @@ button:hover {
   background-color: #1abc9c;
 }
 
+/* Garbage bin and refresh tiles icons:
+   These are small clickable icons next to the buttons.
+   Using hover effects to indicate interactivity. */
 .garbage-bin {
   display: flex;
   justify-content: center;
@@ -287,8 +344,9 @@ button:hover {
   max-height: 100%;
 }
 
+/* Highlight garbage bin on drag-over, indicating where tiles can be dropped. */
 .garbage-bin.drag-over {
-  border-color: #27ae60; /* Green highlight */
+  border-color: #27ae60; 
 }
 
 .refresh-tiles {
@@ -312,6 +370,8 @@ button:hover {
   border-color: #16a085;
 }
 
+/* Instructions-container provides a brief guide to the controls and game-play.
+   Styled similarly to the game-container for consistency. */
 .instructions-container {
   margin-top: 20px;
   background-color: #34495e;
@@ -323,20 +383,25 @@ button:hover {
   line-height: 1.4;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
+
 .instructions-container h4 {
   margin-top: 0;
   margin-bottom: 10px;
   font-size: 1.1em;
   text-align: center;
 }
+
 .instructions-container ul {
   list-style: none;
   padding: 0;
 }
+
 .instructions-container li {
   margin-bottom: 5px;
 }
+
 .instructions-container li span {
   font-weight: bold;
   color: #1abc9c;
 }
+
