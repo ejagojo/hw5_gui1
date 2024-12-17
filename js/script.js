@@ -4,14 +4,38 @@ Date: 12/16/2024
 File: script.js
 
 GUI Assignment:
-    This assignment is about creating a web app copy of the infamous game scrabble, by utilizing JQUERy and our knowdledge of
-    html, css and javascript
+    This assignment is about creating a web app copy of the infamous game scrabble, by utilizing jQuery and our knowledge of
+    HTML, CSS, and JavaScript.
 
 Eljohn Agojo, UMass Lowell Computer Science, eljohn_agojo@student.uml.edu
 Copyright (c) 2024 by Eljohn. All rights reserved. May be freely copied or 
 excerpted for educational purposes with credit to the author.
 */
 
+/*
+Explanation for Implementing Adjacency Check:
+
+Now we add logic so that except for the very first placed tile (which must be on the center), all subsequently placed tiles must be placed directly adjacent (up, down, left, or right) to at least one already placed tile. If this condition is not met, the tile is not allowed to remain on the board and should be returned ("bounced back") to the rack.
+
+Why this rule?
+- In Scrabble, words must be formed in a continuous line. The first tile sets the starting point (center cell), and each subsequent tile must connect to previously placed tiles so there are no isolated letters.
+
+How do we check adjacency?
+1. When placing a tile, we know its (row, col).
+2. If it's the first tile placed (placedTilesStack is empty before placement), it must be placed on the center. We already handle that, so no issue there.
+3. If it's not the first tile, we must check if at least one of its orthogonal neighbors (up, down, left, right) contains a placed tile.
+   - We can easily check the placedTilesStack or just check if those neighbor cells have data-locked="true".
+   - If no placed tile is adjacent, this placement is invalid. We remove the tile from the board and put it back to the rack.
+
+Step-by-step:
+- In handleDrop, after verifying the center rule and before actually finalizing the placement:
+  - If placedTilesStack is not empty, perform adjacency check.
+  - To check adjacency: Look at (r-1,c), (r+1,c), (r,c-1), (r,c+1). If any of these is locked or already contains a tile, adjacency is satisfied.
+- If adjacency fails:
+  - Bounce the tile back to the rack and show a modal or just silently revert.
+
+This ensures that every tile after the first is placed in continuous contact with existing tiles, enforcing a linear word formation pattern.
+*/
 
 document.addEventListener("DOMContentLoaded", () => {
   const board = document.getElementById("scrabble-board");
@@ -24,7 +48,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const modalClose = document.getElementById("modal-close");
   const validateWordButton = document.getElementById("validate-word");
   const refreshTilesButton = document.getElementById("refresh-tiles");
-  const recallTileButton = document.getElementById("recall-tile"); // Already in HTML as requested
+  const recallTileButton = document.getElementById("recall-tile"); 
 
   let currentScore = 0;
   let isCenterTileUsed = false;
@@ -32,17 +56,13 @@ document.addEventListener("DOMContentLoaded", () => {
   let previouslyScoredWords = [];
   let wordsScoredCount = 0;
 
-  // Stack to keep track of placed tiles for recall
   let placedTilesStack = [];
-
-  // Flag to indicate if refresh was performed, disabling recall
   let hasRefreshed = false;
 
   refreshTilesButton.addEventListener("click", () => {
     rack.innerHTML = "";
     generateTiles();
     updateLetterCounter();
-    // Once refreshed, we cannot recall previously placed tiles
     hasRefreshed = true;
   });
 
@@ -153,6 +173,30 @@ document.addEventListener("DOMContentLoaded", () => {
     e.preventDefault();
   }
 
+  // Check adjacency for the tile being placed:
+  // If this is not the first tile (stack not empty), we must check if (row,col) is adjacent to any placed tile.
+  function isAdjacentToPlacedTile(row, col) {
+    // If no tiles placed yet, no check needed (first tile case handled separately)
+    if (placedTilesStack.length === 0) return true;
+
+    // Check the four orthogonal neighbors
+    const deltas = [[-1,0],[1,0],[0,-1],[0,1]];
+    for (let [dr,dc] of deltas) {
+      const nr = row+dr;
+      const nc = col+dc;
+      // Must be within board
+      if (nr >=0 && nr <15 && nc>=0 && nc<15) {
+        const neighborCell = board.querySelector(`.cell[data-row="${nr}"][data-col="${nc}"]`);
+        if (!neighborCell) continue;
+        // If neighbor cell is locked (has a tile placed), adjacency is satisfied
+        if (neighborCell.getAttribute("data-locked") === "true") {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
   function handleDrop(e) {
     e.preventDefault();
     const cellElem = e.target.classList.contains("cell") ? e.target : e.target.closest(".cell");
@@ -164,16 +208,34 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const row = parseInt(cellElem.getAttribute("data-row"), 10);
     const col = parseInt(cellElem.getAttribute("data-col"), 10);
-    const isCenterSquare = (row === 7 && col === 7);
 
-    if (!isCenterTileUsed && !isCenterSquare) {
+    // Check if first tile must be on center
+    const isCenterSquare = (row === 7 && col === 7);
+    if (placedTilesStack.length === 0 && !isCenterSquare) {
       showModal("The first tile must be placed on the center square.");
       return;
     }
 
+    // If not first tile, ensure adjacency
+    if (placedTilesStack.length > 0) {
+      if (!isAdjacentToPlacedTile(row,col)) {
+        // Not adjacent, bounce back
+        showModal("This tile must be placed adjacent to an existing tile.");
+        // Return tile to rack
+        rack.appendChild(tile);
+        tile.style.width = "";
+        tile.style.height = "";
+        return;
+      }
+    }
+
     if (cellElem.getAttribute("data-locked") === "false") {
+      let premiumLabel = null;
       const label = cellElem.querySelector(".cell-label");
-      if (label) label.remove();
+      if (label) {
+        premiumLabel = label.textContent;
+        label.remove();
+      }
 
       cellElem.appendChild(tile);
       cellElem.setAttribute("data-locked", "true");
@@ -184,8 +246,7 @@ document.addEventListener("DOMContentLoaded", () => {
         isCenterTileUsed = true;
       }
 
-      // Record the placed tile for recall
-      placedTilesStack.push({ tile: tile, cell: cellElem });
+      placedTilesStack.push({ tile: tile, cell: cellElem, validated: false, premiumLabel: premiumLabel });
 
       updateLetterCounter();
     }
@@ -292,7 +353,7 @@ document.addEventListener("DOMContentLoaded", () => {
     previouslyScoredWords = [];
     wordsScoredCount = 0;
     placedTilesStack = []; 
-    hasRefreshed = false; // Reset so we can recall tiles again in a new game.
+    hasRefreshed = false;
   });
 
   garbageBin.addEventListener("dragover", (e) => {
@@ -424,7 +485,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     let totalPlayScore = 0;
-
     const newWords = words.filter((w) => !previouslyScoredWords.includes(w));
 
     for (const word of newWords) {
@@ -437,6 +497,7 @@ document.addEventListener("DOMContentLoaded", () => {
       let wordScore = 0;
       let wordMultiplier = 1;
       let appliedBonuses = [];
+      let usedTilesForThisWord = [];
 
       const size = 15;
       for (let r = 0; r < size; r++) {
@@ -447,6 +508,8 @@ document.addEventListener("DOMContentLoaded", () => {
           if (tileImg && word.includes(tileImg.getAttribute('data-letter'))) {
             const letter = tileImg.getAttribute('data-letter');
             let letterValue = ScrabbleTiles[letter].value;
+
+            usedTilesForThisWord.push(tileImg);
 
             if (cell.classList.contains('double-letter')) {
               letterValue *= 2;
@@ -479,45 +542,61 @@ document.addEventListener("DOMContentLoaded", () => {
       );
 
       previouslyScoredWords.push(word);
+
+      for (let placed of placedTilesStack) {
+        if (usedTilesForThisWord.includes(placed.tile)) {
+          placed.validated = true;
+        }
+      }
     }
 
     currentScore += totalPlayScore;
     scoreElement.textContent = currentScore;
   });
 
-  resetTiles();
-  generateBoard();
-  generateTiles();
-  updateLetterCounter();
-
   // Recall Tile Logic:
   recallTileButton.addEventListener("click", () => {
-    // If we have refreshed the rack, disallow recall
     if (hasRefreshed) {
       showModal("Cannot recall tile after refreshing tiles.");
       return;
     }
 
-    // If no tiles placed, nothing to recall
     if (placedTilesStack.length === 0) {
       showModal("No recently placed tile to recall.");
       return;
     }
 
-    // Pop the last placed tile
-    const lastPlaced = placedTilesStack.pop();
+    const lastPlaced = placedTilesStack[placedTilesStack.length - 1];
+
+    if (lastPlaced.validated) {
+      showModal("Cannot recall a tile that is part of a validated word.");
+      return;
+    }
+
+    placedTilesStack.pop();
     const tile = lastPlaced.tile;
     const cell = lastPlaced.cell;
 
-    // Remove tile from the board
+    // If there was a premium label originally, restore it
+    if (lastPlaced.premiumLabel) {
+      const label = document.createElement("span");
+      label.textContent = lastPlaced.premiumLabel;
+      label.classList.add("cell-label");
+      cell.appendChild(label);
+    }
+
     cell.removeChild(tile);
     cell.setAttribute("data-locked", "false");
 
-    // Return tile to rack
     rack.appendChild(tile);
     tile.style.width = "";
     tile.style.height = "";
 
     updateLetterCounter();
   });
+
+  resetTiles();
+  generateBoard();
+  generateTiles();
+  updateLetterCounter();
 });
