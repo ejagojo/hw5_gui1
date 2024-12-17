@@ -12,32 +12,8 @@ Copyright (c) 2024 by Eljohn. All rights reserved. May be freely copied or
 excerpted for educational purposes with credit to the author.
 */
 
-/*
-Explanation for Implementing Adjacency Check:
-
-Now we add logic so that except for the very first placed tile (which must be on the center), all subsequently placed tiles must be placed directly adjacent (up, down, left, or right) to at least one already placed tile. If this condition is not met, the tile is not allowed to remain on the board and should be returned ("bounced back") to the rack.
-
-Why this rule?
-- In Scrabble, words must be formed in a continuous line. The first tile sets the starting point (center cell), and each subsequent tile must connect to previously placed tiles so there are no isolated letters.
-
-How do we check adjacency?
-1. When placing a tile, we know its (row, col).
-2. If it's the first tile placed (placedTilesStack is empty before placement), it must be placed on the center. We already handle that, so no issue there.
-3. If it's not the first tile, we must check if at least one of its orthogonal neighbors (up, down, left, right) contains a placed tile.
-   - We can easily check the placedTilesStack or just check if those neighbor cells have data-locked="true".
-   - If no placed tile is adjacent, this placement is invalid. We remove the tile from the board and put it back to the rack.
-
-Step-by-step:
-- In handleDrop, after verifying the center rule and before actually finalizing the placement:
-  - If placedTilesStack is not empty, perform adjacency check.
-  - To check adjacency: Look at (r-1,c), (r+1,c), (r,c-1), (r,c+1). If any of these is locked or already contains a tile, adjacency is satisfied.
-- If adjacency fails:
-  - Bounce the tile back to the rack and show a modal or just silently revert.
-
-This ensures that every tile after the first is placed in continuous contact with existing tiles, enforcing a linear word formation pattern.
-*/
-
 document.addEventListener("DOMContentLoaded", () => {
+  // Grabbing references to all key UI elements from the DOM for easy manipulation.
   const board = document.getElementById("scrabble-board");
   const rack = document.getElementById("tile-rack");
   const scoreElement = document.getElementById("score");
@@ -48,23 +24,29 @@ document.addEventListener("DOMContentLoaded", () => {
   const modalClose = document.getElementById("modal-close");
   const validateWordButton = document.getElementById("validate-word");
   const refreshTilesButton = document.getElementById("refresh-tiles");
-  const recallTileButton = document.getElementById("recall-tile"); 
+  const recallTileButton = document.getElementById("recall-tile");
 
+  // Tracking current score and other gameplay states.
   let currentScore = 0;
   let isCenterTileUsed = false;
-  let uniqueTileId = 0;
+  let uniqueTileId = 0; // Unique ID for each tile so we can reference them easily.
   let previouslyScoredWords = [];
   let wordsScoredCount = 0;
 
+  // A stack to keep track of placed tiles: each entry stores tile info and its board cell.
   let placedTilesStack = [];
+
+  // Flag to indicate if "Refresh Tiles" action was performed, affects recall logic.
   let hasRefreshed = false;
 
+  // When refresh button is clicked, we fill the rack to seven tiles and mark that refresh occurred.
   refreshTilesButton.addEventListener("click", () => {
     fillRackToSeven();
     updateLetterCounter();
     hasRefreshed = true;
   });
 
+  // resetTiles: restores all tile counts to their original distribution, ready for a new game.
   function resetTiles() {
     for (const letter in ScrabbleTiles) {
       if (ScrabbleTiles.hasOwnProperty(letter)) {
@@ -73,6 +55,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // premiumSquares: a predefined list of all special bonus squares on the standard Scrabble board.
+  // Each entry includes the row, column, type of bonus, and label.
   const premiumSquares = [
     { row: 7, col: 7, type: "center", label: "⭐ Double Word Score" },
     { row: 0, col: 0, type: "triple-word", label: "Triple Word Score" },
@@ -137,6 +121,8 @@ document.addEventListener("DOMContentLoaded", () => {
     { row: 12, col: 8, type: "double-letter", label: "Double Letter Score" },
   ];
 
+  // generateBoard: creates the 15x15 Scrabble board dynamically.
+  // Each cell is assigned data attributes for row/col and special classes for premium squares.
   function generateBoard() {
     board.innerHTML = "";
     for (let row = 0; row < 15; row++) {
@@ -157,6 +143,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         if (row === 7 && col === 7) {
+          // The center cell must host the first tile placed.
           cell.classList.add("center");
         }
 
@@ -168,26 +155,23 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // allowDrop: Enables dropping of dragged tiles onto the board cells.
   function allowDrop(e) {
     e.preventDefault();
   }
 
-  // Check adjacency for the tile being placed:
-  // If this is not the first tile (stack not empty), we must check if (row,col) is adjacent to any placed tile.
+  // isAdjacentToPlacedTile: ensures that after the first tile, every placed tile is next to an existing tile.
+  // Checks the four orthogonal neighbors for placed tiles.
   function isAdjacentToPlacedTile(row, col) {
-    // If no tiles placed yet, no check needed (first tile case handled separately)
     if (placedTilesStack.length === 0) return true;
 
-    // Check the four orthogonal neighbors
     const deltas = [[-1,0],[1,0],[0,-1],[0,1]];
     for (let [dr,dc] of deltas) {
       const nr = row+dr;
       const nc = col+dc;
-      // Must be within board
       if (nr >=0 && nr <15 && nc>=0 && nc<15) {
         const neighborCell = board.querySelector(`.cell[data-row="${nr}"][data-col="${nc}"]`);
         if (!neighborCell) continue;
-        // If neighbor cell is locked (has a tile placed), adjacency is satisfied
         if (neighborCell.getAttribute("data-locked") === "true") {
           return true;
         }
@@ -196,22 +180,21 @@ document.addEventListener("DOMContentLoaded", () => {
     return false;
   }
 
-  // this function calculates how many are needed to bring the rack back to 7.
+  // fillRackToSeven: After playing or discarding tiles, bring the rack back to 7 tiles if possible.
   function fillRackToSeven() {
     const currentTilesInRack = rack.querySelectorAll('.tile').length;
     const needed = 7 - currentTilesInRack;
     if (needed > 0) {
-      // only add the missing number of tiles
       addTilesToRack(needed);
     }
   }
 
-  // This helper just adds a specified number of tiles to the rack
-  // instead of always adding exactly 7.
+  // addTilesToRack: draws the specified number of new tiles from the distribution to the player's rack.
   function addTilesToRack(count) {
     for (let i = 0; i < count; i++) {
       const letter = getRandomLetter();
       if (!letter) {
+        // No more tiles available, end the game gracefully.
         const summary = `Game Over! No more tiles available!\nWords Scored: ${wordsScoredCount}\nTotal Score: ${currentScore}`;
         showModal(summary);
         return;
@@ -235,6 +218,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // handleDrop: triggered when a tile is dropped onto a cell.
+  // Validates if the placement is allowed (center for first tile, adjacency for subsequent tiles).
   function handleDrop(e) {
     e.preventDefault();
     const cellElem = e.target.classList.contains("cell") ? e.target : e.target.closest(".cell");
@@ -247,19 +232,18 @@ document.addEventListener("DOMContentLoaded", () => {
     const row = parseInt(cellElem.getAttribute("data-row"), 10);
     const col = parseInt(cellElem.getAttribute("data-col"), 10);
 
-    // Check if first tile must be on center
+    // Check if the first placed tile is on the center square.
     const isCenterSquare = (row === 7 && col === 7);
     if (placedTilesStack.length === 0 && !isCenterSquare) {
       showModal("The first tile must be placed on the center square.");
       return;
     }
 
-    // If not first tile, ensure adjacency
+    // For subsequent tiles, enforce adjacency.
     if (placedTilesStack.length > 0) {
       if (!isAdjacentToPlacedTile(row,col)) {
-        // Not adjacent, bounce back
         showModal("This tile must be placed adjacent to an existing tile.");
-        // Return tile to rack
+        // Bounce the tile back to the rack.
         rack.appendChild(tile);
         tile.style.width = "";
         tile.style.height = "";
@@ -267,12 +251,13 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
+    // If cell is free, lock the tile in.
     if (cellElem.getAttribute("data-locked") === "false") {
       let premiumLabel = null;
       const label = cellElem.querySelector(".cell-label");
       if (label) {
         premiumLabel = label.textContent;
-        label.remove();
+        label.remove(); // Remove label once tile is placed.
       }
 
       cellElem.appendChild(tile);
@@ -290,27 +275,30 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // showModal: Displays a modal with a given message to inform the user about rules or errors.
   function showModal(message) {
     modalMessage.textContent = message;
     modal.classList.remove("hidden");
   }
 
+  // Close the modal on OK button click.
   modalClose.addEventListener("click", () => {
     modal.classList.add("hidden");
   });
 
+  // generateTiles: fills the player's rack at the start of a new game.
   function generateTiles() {
-    // On new game, we reset the rack and fill to 7
     rack.innerHTML = "";
     fillRackToSeven();
   }
 
+  // getRandomLetter: draws a random letter from the remaining tile distribution.
   function getRandomLetter() {
     const letters = Object.keys(ScrabbleTiles);
     const total = letters.reduce((sum, key) => sum + ScrabbleTiles[key]["number-remaining"], 0);
 
     if (total === 0) {
-      return null;
+      return null; // No tiles left.
     }
 
     let randomIndex = Math.floor(Math.random() * total);
@@ -321,14 +309,15 @@ document.addEventListener("DOMContentLoaded", () => {
         return letter;
       }
     }
-
     return null;
   }
 
+  // updateLetterCounter: refreshes the letter usage table.
   function updateLetterCounter() {
     renderLetterCounter();
   }
 
+  // renderLetterCounter: shows how many of each letter have been used vs total.
   function renderLetterCounter() {
     const tableRows = Object.entries(ScrabbleTiles)
       .map(([letter, info]) => {
@@ -357,7 +346,7 @@ document.addEventListener("DOMContentLoaded", () => {
       </table>`;
   }
 
-  // On new game:
+  // "New Game" button: resets everything for a fresh start.
   document.getElementById("new-game").addEventListener("click", () => {
     currentScore = 0;
     scoreElement.textContent = currentScore;
@@ -372,6 +361,7 @@ document.addEventListener("DOMContentLoaded", () => {
     hasRefreshed = false;
   });
 
+  // Garbage bin events: allows discarding a tile from rack to refresh it.
   garbageBin.addEventListener("dragover", (e) => {
     e.preventDefault();
     garbageBin.classList.add("drag-over");
@@ -395,9 +385,11 @@ document.addEventListener("DOMContentLoaded", () => {
     updateLetterCounter();
   });
 
+  // generateTileInRack: draws a single new tile after discarding one to maintain 7 tiles in hand.
   function generateTileInRack() {
     const letter = getRandomLetter();
     if (!letter) {
+      // No tiles left: game over scenario.
       const summary = `Game Over! No more tiles available!\nWords Scored: ${wordsScoredCount}\nTotal Score: ${currentScore}`;
       showModal(summary);
       return;
@@ -421,6 +413,8 @@ document.addEventListener("DOMContentLoaded", () => {
     updateLetterCounter();
   }
 
+  // getWordsFromBoard: extracts all horizontal and vertical words formed on the board.
+  // Only continuous sequences of letters longer than 1 count as words.
   function getWordsFromBoard() {
     const size = 15;
     const boardArray = [];
@@ -479,6 +473,8 @@ document.addEventListener("DOMContentLoaded", () => {
     return [...horizontalWords, ...verticalWords];
   }
 
+  // isWordValid: checks the formed word against an online dictionary API.
+  // Returns true if valid English word, false otherwise.
   async function isWordValid(word) {
     try {
       const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
@@ -492,6 +488,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // validateWordButton: triggered when player clicks "Validate Word."
+  // Checks all placed words, validates them, calculates their scores if valid, and updates total score.
   validateWordButton.addEventListener("click", async () => {
     const words = getWordsFromBoard();
 
@@ -501,6 +499,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     let totalPlayScore = 0;
+    // Only consider new words that were not previously scored.
     const newWords = words.filter((w) => !previouslyScoredWords.includes(w));
 
     for (const word of newWords) {
@@ -516,6 +515,7 @@ document.addEventListener("DOMContentLoaded", () => {
       let usedTilesForThisWord = [];
 
       const size = 15;
+      // Calculate score by scanning the board again to apply bonuses and sum values.
       for (let r = 0; r < size; r++) {
         for (let c = 0; c < size; c++) {
           const cell = board.querySelector(`.cell[data-row="${r}"][data-col="${c}"]`);
@@ -527,6 +527,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             usedTilesForThisWord.push(tileImg);
 
+            // Check for letter multiplier squares.
             if (cell.classList.contains('double-letter')) {
               letterValue *= 2;
               appliedBonuses.push("double letter");
@@ -538,6 +539,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             wordScore += letterValue;
 
+            // Check for word multiplier squares.
             if (cell.classList.contains('double-word') || cell.classList.contains('center')) {
               wordMultiplier *= 2;
               appliedBonuses.push("double word");
@@ -553,12 +555,15 @@ document.addEventListener("DOMContentLoaded", () => {
       wordScore *= wordMultiplier;
       totalPlayScore += wordScore;
       wordsScoredCount++;
+
+      // Show the user the score for this word.
       showModal(
         `Your word "${word}" scored ${wordScore} points for this play due to having ${appliedBonuses.join(", ")}! Your total score: ${currentScore + totalPlayScore}`
       );
 
       previouslyScoredWords.push(word);
 
+      // Mark these tiles as validated so they cannot be recalled.
       for (let placed of placedTilesStack) {
         if (usedTilesForThisWord.includes(placed.tile)) {
           placed.validated = true;
@@ -566,11 +571,13 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
+    // Update total score after validating all new words.
     currentScore += totalPlayScore;
     scoreElement.textContent = currentScore;
   });
 
   // Recall Tile Logic:
+  // Allows player to undo the last placed tile (if not validated and no refresh after).
   recallTileButton.addEventListener("click", () => {
     if (hasRefreshed) {
       showModal("Cannot recall tile after refreshing tiles.");
@@ -593,7 +600,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const tile = lastPlaced.tile;
     const cell = lastPlaced.cell;
 
-    // If there was a premium label originally, restore it
+    // Restore any premium label that was on this cell before.
     if (lastPlaced.premiumLabel) {
       const label = document.createElement("span");
       label.textContent = lastPlaced.premiumLabel;
@@ -611,6 +618,7 @@ document.addEventListener("DOMContentLoaded", () => {
     updateLetterCounter();
   });
 
+  // Initialize the game on page load: reset tiles, draw board, deal initial tiles, update counters.
   resetTiles();
   generateBoard();
   generateTiles();
