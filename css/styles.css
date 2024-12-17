@@ -38,6 +38,7 @@ body {
   width: 100%; 
   max-width: 1200px; 
   margin: 0 auto; /* Centers the main container within the viewport */
+  overflow: hidden;
 }
 
 /* The game-container holds the board, rack, controls, and score.
