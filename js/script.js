@@ -60,8 +60,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let hasRefreshed = false;
 
   refreshTilesButton.addEventListener("click", () => {
-    rack.innerHTML = "";
-    generateTiles();
+    fillRackToSeven();
     updateLetterCounter();
     hasRefreshed = true;
   });
@@ -197,6 +196,45 @@ document.addEventListener("DOMContentLoaded", () => {
     return false;
   }
 
+  // this function calculates how many are needed to bring the rack back to 7.
+  function fillRackToSeven() {
+    const currentTilesInRack = rack.querySelectorAll('.tile').length;
+    const needed = 7 - currentTilesInRack;
+    if (needed > 0) {
+      // only add the missing number of tiles
+      addTilesToRack(needed);
+    }
+  }
+
+  // This helper just adds a specified number of tiles to the rack
+  // instead of always adding exactly 7.
+  function addTilesToRack(count) {
+    for (let i = 0; i < count; i++) {
+      const letter = getRandomLetter();
+      if (!letter) {
+        const summary = `Game Over! No more tiles available!\nWords Scored: ${wordsScoredCount}\nTotal Score: ${currentScore}`;
+        showModal(summary);
+        return;
+      }
+
+      const tile = document.createElement("img");
+      tile.src = (letter === "_")
+        ? `./graphics_data/Scrabble_Tiles/Scrabble_Tile_Blank.jpg`
+        : `./graphics_data/Scrabble_Tiles/Scrabble_Tile_${letter}.jpg`;
+
+      tile.classList.add("tile");
+      tile.setAttribute("data-letter", letter);
+      tile.setAttribute("data-tile-id", `tile-${uniqueTileId++}`);
+      tile.setAttribute("draggable", "true");
+
+      tile.addEventListener("dragstart", (e) => {
+        e.dataTransfer.setData("text", tile.getAttribute("data-tile-id"));
+      });
+
+      rack.appendChild(tile);
+    }
+  }
+
   function handleDrop(e) {
     e.preventDefault();
     const cellElem = e.target.classList.contains("cell") ? e.target : e.target.closest(".cell");
@@ -262,32 +300,9 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   function generateTiles() {
+    // On new game, we reset the rack and fill to 7
     rack.innerHTML = "";
-    for (let i = 0; i < 7; i++) {
-      const letter = getRandomLetter();
-      if (!letter) {
-        const summary = `Game Over! No more tiles available!\nWords Scored: ${wordsScoredCount}\nTotal Score: ${currentScore}`;
-        showModal(summary);
-        return;
-      }
-
-      const tile = document.createElement("img");
-      tile.src = (letter === "_")
-        ? `./graphics_data/Scrabble_Tiles/Scrabble_Tile_Blank.jpg`
-        : `./graphics_data/Scrabble_Tiles/Scrabble_Tile_${letter}.jpg`;
-
-      tile.classList.add("tile");
-      tile.setAttribute("data-letter", letter);
-      tile.setAttribute("data-tile-id", `tile-${uniqueTileId++}`);
-      tile.setAttribute("draggable", "true");
-
-      tile.addEventListener("dragstart", (e) => {
-        e.dataTransfer.setData("text", tile.getAttribute("data-tile-id"));
-      });
-
-      rack.appendChild(tile);
-    }
-    updateLetterCounter();
+    fillRackToSeven();
   }
 
   function getRandomLetter() {
@@ -342,6 +357,7 @@ document.addEventListener("DOMContentLoaded", () => {
       </table>`;
   }
 
+  // On new game:
   document.getElementById("new-game").addEventListener("click", () => {
     currentScore = 0;
     scoreElement.textContent = currentScore;
